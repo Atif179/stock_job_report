@@ -1,8 +1,8 @@
-name: Daily Stock and Job Report
+name: Daily Stock and Periodic Job Report
 
 on:
   schedule:
-    # Runs at 9 PM UTC daily (4 PM EST - after market close)
+    # Runs daily at 9 PM UTC (4 PM EST - after market close)
     - cron: '0 21 * * *'
   workflow_dispatch:
 
@@ -28,18 +28,19 @@ jobs:
       uses: actions/cache@v3
       with:
         path: references.json
-        key: ref-${{ runner.os }}-${{ hashFiles('stock_job_report.py') }}
+        key: ref-${{ runner.os }}-${{ hashFiles('smart_report.py') }}
         
     - name: Run report
       env:
         SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
         SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
         RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
-      run: python stock_job_report.py
+        SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+      run: python smart_report.py
       
     - name: Save references
       if: always()
       uses: actions/cache@v3
       with:
         path: references.json
-        key: ref-${{ runner.os }}-${{ hashFiles('stock_job_report.py') }}
+        key: ref-${{ runner.os }}-${{ hashFiles('smart_report.py') }}
