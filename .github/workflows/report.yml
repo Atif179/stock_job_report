@@ -1,0 +1,45 @@
+name: Daily Stock and Job Report
+
+on:
+  schedule:
+    # Runs at 9 PM UTC daily (4 PM EST - after market close)
+    - cron: '0 21 * * *'
+  workflow_dispatch:
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        pip install yfinance pandas requests
+        
+    - name: Load references
+      id: load-ref
+      uses: actions/cache@v3
+      with:
+        path: references.json
+        key: ref-${{ runner.os }}-${{ hashFiles('stock_job_report.py') }}
+        
+    - name: Run report
+      env:
+        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+        RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+      run: python stock_job_report.py
+      
+    - name: Save references
+      if: always()
+      uses: actions/cache@v3
+      with:
+        path: references.json
+        key: ref-${{ runner.os }}-${{ hashFiles('stock_job_report.py') }}
